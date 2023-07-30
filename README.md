@@ -123,7 +123,7 @@ There were several ways to implement a server that can handle thousands of simul
       <th text-align="center">No.</th>
       <th text-align="center">Type of polling</th>
       <th text-align="center">Type of IO</th>
-      <th>Issues</th>
+      <th align="left">Issues</th>
     </tr>
     <tr>
       <td align="center">1</td>
