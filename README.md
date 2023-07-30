@@ -4,8 +4,6 @@ A C++ single-threaded event-driven HTTP Server using an edge-triggered epoll loo
 
 ## Table of contents
 
-- [C++ Event-driven HTTP Server](#c-event-driven-http-server)
-  - [Table of contents](#table-of-contents)
   - [Setup](#setup)
   - [Example usage](#example-usage)
   - [Implementation details](#implementation-details)
@@ -125,7 +123,7 @@ There were several ways to implement a server that can handle thousands of simul
       <th text-align="center">No.</th>
       <th text-align="center">Type of polling</th>
       <th text-align="center">Type of IO</th>
-      <th align="right">Issues</th>
+      <th>Issues</th>
     </tr>
     <tr>
       <td align="center">1</td>
