@@ -45,6 +45,7 @@ void http::EventLoop::Start() {
                 epoll_event new_event;
                 new_event.events = EPOLLOUT | EPOLLET;
                 Client *client = (Client *)event.data.ptr;
+                new_event.data.ptr = client;
                 int fd = client->get_fd();
 
                 if (epoll_ctl(epoll_fd_, EPOLL_CTL_MOD, fd, &new_event) == -1) {
@@ -60,6 +61,7 @@ void http::EventLoop::Start() {
                 int fd = client->get_fd();
                 epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, NULL);
                 close(fd);
+                delete client;
             } else {
                 logging::Logger::Log(logging::LogLevel::kError,
                                      "Unknown epoll event");
@@ -89,4 +91,4 @@ void http::EventLoop::set_non_blocking(const int fd) {
 
 void http::EventLoop::set_server(HttpServer *server) { server_ = server; }
 
-http::EventLoop::~EventLoop() { free(server_); }
+http::EventLoop::~EventLoop() {}

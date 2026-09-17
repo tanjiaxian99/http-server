@@ -120,12 +120,15 @@ void http::HttpServer::ReadRequest(epoll_event &event) {
     Client *client = (Client *)event.data.ptr;
 
     char buffer[BUFFER_SIZE];
-    read(client->get_fd(), buffer, BUFFER_SIZE);
+    ssize_t bytes_read = read(client->get_fd(), buffer, BUFFER_SIZE);
+    if (bytes_read <= 0) {
+        return;
+    }
     logging::Logger::Log(logging::LogLevel::kDebug, "Received request from client");
 
     Request &request = client->get_request();
     Response &response = client->get_response();
-    request.ParseRequest(buffer);
+    request.ParseRequest(std::string(buffer, bytes_read));
 
     std::ostringstream oss;
     oss << request;

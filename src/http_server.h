@@ -12,7 +12,7 @@
 
 #define IP_ADDR "127.0.0.5"
 #define PORT 8080
-#define LISTEN_BACKLOG 1024
+#define LISTEN_BACKLOG 32768
 #define BUFFER_SIZE 1024
 
 namespace http {

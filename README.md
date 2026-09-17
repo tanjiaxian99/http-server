@@ -107,7 +107,23 @@ Summary of files:
 - `main` is where the handlers and the server set up is done.
 
 ## Performance benchmarks
-The open-source tool [wrk](https://github.com/wg/wrk) is used to stress-test the server. The server was capable of handling 10,000 concurrent HTTP connections, as well as achieve 10,000 queries per second.
+The open-source tool [wrk](https://github.com/wg/wrk) is used to stress-test the server. Tested on an Oracle Cloud Ampere A1 instance (8 OCPU, Ubuntu 26.04), with the server and `wrk` pinned to separate CPU cores to avoid client-server contention.
+
+```bash
+taskset -c 1-7 wrk -t7 -c6000 -d10s --timeout 6s http://localhost:8080/hello
+
+Running 10s test @ http://localhost:8080/hello
+  7 threads and 6000 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   732.87ms  150.95ms 799.04ms   92.57%
+    Req/Sec     1.13k   294.48     3.51k    85.57%
+  78541 requests in 10.06s, 3.82MB read
+  Socket errors: connect 0, read 78540, write 0, timeout 0
+Requests/sec:   7805.66
+Transfer/sec:    388.76KB
+```
+
+The server sustained **6,000 concurrent connections at ~7,800 requests/second**, with zero dropped connections and zero errors. This required raising the connection backlog (`LISTEN_BACKLOG` and `net.ipv4.tcp_max_syn_backlog`) beyond their defaults.
 
 ## Comparisons to Node.js
 My HTTP server is closely modelled after the event-driven architecture that Node.js uses. For my HTTP server, I used `epoll` to wait on a read/write event that can be performed on sockets matched to a specific client. 
