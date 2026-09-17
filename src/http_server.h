@@ -39,7 +39,7 @@ class HttpServer {
     void Start();
     Client* Accept(epoll_event& event);
     void AddHandler(const std::string& path, const Handler& handler);
-    void ReadRequest(epoll_event& event);
+    bool ReadRequest(epoll_event& event);
     void WriteResponse(epoll_event& event);
 };
 }  // namespace http

@@ -41,12 +41,19 @@ void http::EventLoop::Start() {
                         "Unable to add fd " + std::to_string(fd) + " to epoll");
                 }
             } else if (event.events & EPOLLIN) {
-                server_->ReadRequest(event);
+                Client *client = (Client *)event.data.ptr;
+                int fd = client->get_fd();
+
+                if (!server_->ReadRequest(event)) {
+                    epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, NULL);
+                    close(fd);
+                    delete client;
+                    continue;
+                }
+
                 epoll_event new_event;
                 new_event.events = EPOLLOUT | EPOLLET;
-                Client *client = (Client *)event.data.ptr;
                 new_event.data.ptr = client;
-                int fd = client->get_fd();
 
                 if (epoll_ctl(epoll_fd_, EPOLL_CTL_MOD, fd, &new_event) == -1) {
                     logging::Logger::Log(logging::LogLevel::kError,
@@ -59,9 +66,23 @@ void http::EventLoop::Start() {
 
                 Client *client = (Client *)event.data.ptr;
                 int fd = client->get_fd();
-                epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, NULL);
-                close(fd);
-                delete client;
+
+                if (client->get_request().ShouldKeepAlive()) {
+                    client->Reset();
+                    epoll_event new_event;
+                    new_event.events = EPOLLIN | EPOLLET;
+                    new_event.data.ptr = client;
+                    if (epoll_ctl(epoll_fd_, EPOLL_CTL_MOD, fd, &new_event) == -1) {
+                        logging::Logger::Log(logging::LogLevel::kError,
+                                             "Unable to change fd " +
+                                                 std::to_string(fd) +
+                                                 " to EPOLLIN");
+                    }
+                } else {
+                    epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, NULL);
+                    close(fd);
+                    delete client;
+                }
             } else {
                 logging::Logger::Log(logging::LogLevel::kError,
                                      "Unknown epoll event");

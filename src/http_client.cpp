@@ -11,3 +11,8 @@ void http::Client::set_fd(const int fd) { fd_ = fd; }
 void http::Client::set_ip_addr(const std::string& ip_addr) {
     ip_addr_ = ip_addr;
 }
+
+void http::Client::Reset() {
+    request_.Reset();
+    response_.Reset();
+}

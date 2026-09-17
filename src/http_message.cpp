@@ -95,9 +95,12 @@ void http::Request::ParseHeaders(const std::string &headers) {
     iss.str(headers);
     std::string header;
     while (std::getline(iss, header)) {
+        if (!header.empty() && header.back() == '\r') {
+            header.pop_back();
+        }
         size_t header_pos_sep = header.find(HEADER_SEP);
         std::string header_key = header.substr(0, header_pos_sep),
-                    header_value = header.substr(header_pos_sep + 1);
+                    header_value = header.substr(header_pos_sep + HEADER_SEP.size());
         headers_[header_key] = header_value;
     }
 
@@ -130,8 +133,26 @@ KVMap http::Request::get_url_params() { return url_params_; }
 
 std::string http::Request::get_body() { return body_; }
 
+std::string http::Request::get_header(const std::string &key) {
+    return headers_.count(key) ? headers_[key] : EMPTY_STRING;
+}
+
+bool http::Request::ShouldKeepAlive() {
+    return get_header(CONNECTION_HEADER) != CONNECTION_CLOSE;
+}
+
+void http::Request::Reset() {
+    method_string_.clear();
+    request_target_.clear();
+    path_.clear();
+    url_params_.clear();
+    headers_.clear();
+    content_length_ = 0;
+    body_.clear();
+}
+
 std::string http::Response::get_response_string() {
-    if (response_string_ == "") {
+    if (response_string_ == EMPTY_STRING) {
         std::ostringstream oss;
         oss << "HTTP/1.1"
             << " " << status_code_ << " " << status_message_ << LINE_SEP;
@@ -165,4 +186,12 @@ void http::Response::set_header(const std::string &key,
 void http::Response::set_body(const std::string &body) {
     body_ = body;
     set_header(CONTENT_LENGTH_HEADER, std::to_string(body.size()));
+}
+
+void http::Response::Reset() {
+    status_code_ = 0;
+    status_message_.clear();
+    headers_.clear();
+    body_.clear();
+    response_string_.clear();
 }

@@ -116,13 +116,13 @@ void http::HttpServer::Handle(Request &request, Response &response) {
     path_handler_map_[request.get_path()](request, response);
 }
 
-void http::HttpServer::ReadRequest(epoll_event &event) {
+bool http::HttpServer::ReadRequest(epoll_event &event) {
     Client *client = (Client *)event.data.ptr;
 
     char buffer[BUFFER_SIZE];
     ssize_t bytes_read = read(client->get_fd(), buffer, BUFFER_SIZE);
     if (bytes_read <= 0) {
-        return;
+        return false;
     }
     logging::Logger::Log(logging::LogLevel::kDebug, "Received request from client");
 
@@ -135,6 +135,8 @@ void http::HttpServer::ReadRequest(epoll_event &event) {
     logging::Logger::Log(logging::LogLevel::kDebug, oss.str());
 
     Route(request, response);
+    response.set_header(CONNECTION_HEADER, request.ShouldKeepAlive() ? CONNECTION_KEEP_ALIVE : CONNECTION_CLOSE);
+    return true;
 }
 
 void http::HttpServer::WriteResponse(epoll_event &event) {

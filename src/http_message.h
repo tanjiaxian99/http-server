@@ -6,6 +6,11 @@
 
 using KVMap = std::unordered_map<std::string, std::string>;
 
+const std::string EMPTY_STRING = "";
+const std::string CONNECTION_HEADER = "Connection";
+const std::string CONNECTION_KEEP_ALIVE = "keep-alive";
+const std::string CONNECTION_CLOSE = "close";
+
 namespace http {
 
 class Request {
@@ -31,6 +36,9 @@ class Request {
     std::string get_path();
     KVMap get_url_params();
     std::string get_body();
+    std::string get_header(const std::string &key);
+    bool ShouldKeepAlive();
+    void Reset();
 };
 
 std::ostream &operator<<(std::ostream &os, const Request &request);
@@ -48,6 +56,7 @@ class Response {
     void set_status(int status_code);
     void set_header(const std::string &key, const std::string &value);
     void set_body(const std::string &body);
+    void Reset();
 };
 
 }  // namespace http

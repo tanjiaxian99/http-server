@@ -17,6 +17,7 @@ class Client {
 
     void set_fd(const int fd);
     void set_ip_addr(const std::string& ip_addr);
+    void Reset();
 };
 
 }  // namespace http
